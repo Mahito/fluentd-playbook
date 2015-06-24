@@ -1,0 +1,9 @@
+- hosts: tdagent
+  roles:
+    - ../fluentd-playbook
+  vars:
+    - fluentd_plugins:
+        - "fluent-plugin-dstat"
+        - "fluent-plugin-influxdb"
+        - "fluent-plugin-map"
+  sudo: yes

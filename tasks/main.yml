@@ -1,0 +1,34 @@
+- name: "Increase Max # of File Descriptors"
+  copy:
+    src: files/limits.conf
+    dest: /etc/security/limits.conf
+    mode: 0644
+
+- name: "Optimize Network Kernel Parameters"
+  sysctl:
+    name: "{{ item.key }} "
+    value: " {{ item.value }}"
+  with_dict:
+    "net.ipv4.tcp_tw_recycle": 1
+    "net.ipv4.tcp_tw_reuse": 1
+    "net.ipv4.ip_local_port_range": "10240    65535"
+
+- name: "Get install script"
+  get_url:
+    url: "https://td-toolbelt.herokuapp.com/sh/install-ubuntu-trusty-td-agent2.sh"
+    dest: "/tmp/install-ubuntu-trusty-td-agent2.sh"
+    mode: "0755"
+
+- name: "Install from Apt Repository"
+  shell: "/tmp/install-ubuntu-trusty-td-agent2.sh"
+
+- name: "Install fluent-plugins"
+  command: "td-agent-gem install {{ item }}"
+  with_items: "{{ fluentd_plugins }}"
+
+- name: "Set /etc/td-agent/td-agent.conf"
+  copy:
+    src: td-agent.conf
+    dest: /etc/td-agent/td-agent.conf
+  notify:
+    - "restart td-agent"
